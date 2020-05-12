@@ -1,26 +1,92 @@
 <template>
-  <div class="user-card">
-    <h2>User List</h2>
-    <ui>
-      <li>name1</li>
-      <li>name2</li>
-      <li>name3</li>
-    </ui>
+    <div class="user-card">
+        <h2>User List</h2>
+        <div class="one-name" v-for="user in Users" :key="user.id">
+            <p>{{ user.name }}</p>
+            <button class="del" @click="$emit('del-user', user.id)">x</button>
+        </div>
+        <!-- @submit="createUser" -->
+        <div v-show="adding">
+            <label for="new-user-text-box">Name:</label>
+            <input
+                type="text"
+                id="new-user-text-box"
+                v-model="newUserName"
+                placeholder="New Name"
+            />
+            <!-- <input type="submit" value="Confirm" class="btn" /> -->
+            <button @click="createUser" class="btn">Confirm</button>
+            <button class="btn" @click="addingUser" v-show="adding">
+                Cancel
+            </button>
+        </div>
 
-    <div class="btn">Add new user</div>
-  </div>
+        <button class="btn" @click="addingUser" v-show="!adding">ADD</button>
+    </div>
 </template>
 
 <script>
-export default {};
-</script>
+import { uuid } from 'vue-uuid';
+export default {
+    name: 'User',
+    props: ['Users'],
 
+    data() {
+        return {
+            newUserName: '',
+            adding: false,
+        };
+    },
+    methods: {
+        addingUser() {
+            this.adding = !this.adding;
+        },
+        createUser() {
+            let newUser = {
+                id: uuid.v4(),
+                name: this.newUserName,
+            };
+
+            this.$emit('add-user', newUser);
+            this.addingUser();
+        },
+    },
+};
+</script>
 
 <style scoped>
 .user-card {
-  width: 20%;
-  border: 1px solid #333;
-  border-radius: 5px;
-  text-align: center;
+    width: 20%;
+    border: 1px solid #333;
+    border-radius: 5px;
+    /* text-align: center; */
+}
+.one-name {
+    display: flex;
+    justify-content: space-between;
+}
+.btn {
+    display: inline-block;
+    padding: 5px 30px;
+    background: #555;
+    color: #fff;
+    border: 1px #fff solid;
+    border-radius: 5px;
+    margin-top: 25px;
+    opacity: 0.7;
+}
+li {
+    list-style: none;
+}
+
+.del {
+    background: #ff0000;
+    color: #fff;
+    border: none;
+    padding: 5px 9px;
+    margin: 20px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    float: right;
 }
 </style>
