@@ -5,8 +5,8 @@
             <p>{{ user.name }}</p>
             <button class="del" @click="$emit('del-user', user.id)">x</button>
         </div>
-        <!-- @submit="createUser" -->
-        <div v-show="adding">
+        <!-- @submit.prevent="createUser" -->
+        <form @submit.prevent="createUser" v-show="adding">
             <label for="new-user-text-box">Name:</label>
             <input
                 type="text"
@@ -14,12 +14,12 @@
                 v-model="newUserName"
                 placeholder="New Name"
             />
-            <!-- <input type="submit" value="Confirm" class="btn" /> -->
-            <button @click="createUser" class="btn">Confirm</button>
-            <button class="btn" @click="addingUser" v-show="adding">
+            <input type="submit" value="Confirm" class="btn" />
+            <!-- <button @click="createUser" class="btn">Confirm</button> -->
+            <button class="btn" @click.prevent="addingUser" v-show="adding">
                 Cancel
             </button>
-        </div>
+        </form>
 
         <button class="btn" @click="addingUser" v-show="!adding">ADD</button>
     </div>
@@ -48,6 +48,8 @@ export default {
             };
 
             this.$emit('add-user', newUser);
+            // cleanup
+            this.newUserName = '';
             this.addingUser();
         },
     },
@@ -59,20 +61,23 @@ export default {
     width: 20%;
     border: 1px solid #333;
     border-radius: 5px;
-    /* text-align: center; */
+    padding: 5px;
+    text-align: center;
 }
 .one-name {
     display: flex;
     justify-content: space-between;
+    padding: 3px;
 }
 .btn {
     display: inline-block;
+    width: 50%;
     padding: 5px 30px;
     background: #555;
     color: #fff;
     border: 1px #fff solid;
     border-radius: 5px;
-    margin-top: 25px;
+    margin-top: 15px;
     opacity: 0.7;
 }
 li {
