@@ -3,20 +3,30 @@
         <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
         <!-- <HelloWorld msg="Welcome to Your Vue.js App" /> -->
         <User v-bind:Users="Users" @del-user="deleteUser" @add-user="addUser" />
+        <Bill v-bind:Users="Users" v-bind:Bills="Bills"/>
     </div>
 </template>
 
 <script>
 // import HelloWorld from './components/HelloWorld.vue';
 import User from './components/User';
+import Bill from './components/Bill';
 export default {
     name: 'App',
     components: {
         User,
+        Bill
     },
     data() {
         return {
             Users: [],
+            Bills: [
+              {
+                "payer":"xd",
+                "amount":40,
+                "participants":["xd","hl"]
+              }
+            ],
         };
     },
     methods: {
