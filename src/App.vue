@@ -3,7 +3,7 @@
         <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
         <!-- <HelloWorld msg="Welcome to Your Vue.js App" /> -->
         <User v-bind:Users="Users" @del-user="deleteUser" @add-user="addUser" />
-        <Bill v-bind:Users="Users" v-bind:Bills="Bills"/>
+        <Bill v-bind:Users="Users" v-bind:Bills="Bills" @add-bill="addBill" @del-bill="deleteBill"/>
     </div>
 </template>
 
@@ -20,13 +20,7 @@ export default {
     data() {
         return {
             Users: [],
-            Bills: [
-              {
-                "payer":"xd",
-                "amount":40,
-                "participants":["xd","hl"]
-              }
-            ],
+            Bills: [],
         };
     },
     methods: {
@@ -36,6 +30,12 @@ export default {
         addUser(usr) {
             this.Users.push(usr);
         },
+        addBill(bill){
+            this.Bills.push(bill)
+        },
+        deleteBill(id){
+          this.Bills = this.Bills.filter((each) => each.id !== id);
+        }
     },
 };
 </script>
