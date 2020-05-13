@@ -42,6 +42,17 @@ export default {
             this.adding = !this.adding;
         },
         createUser() {
+            let isExist = false;
+            for (let each of this.Users) {
+                if (each.name === this.newUserName) {
+                    isExist = true;
+                    break;
+                }
+            }
+            if (isExist) {
+                alert('Name already exist');
+                return;
+            }
             let newUser = {
                 id: uuid.v4(),
                 name: this.newUserName,
