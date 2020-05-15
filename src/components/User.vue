@@ -3,7 +3,10 @@
         <h2>User List</h2>
         <div class="one-name" v-for="user in Users" :key="user.id">
             <p>{{ user.name }}</p>
-            <button class="del" @click="$emit('del-user', user.id)">x</button>
+            <font-awesome-icon
+                icon="trash-alt"
+                @click="$emit('del-user', user.id)"
+            />
         </div>
         <!-- @submit.prevent="createUser" -->
         <form @submit.prevent="createUser" v-show="adding">
@@ -27,6 +30,10 @@
 
 <script>
 import { uuid } from 'vue-uuid';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+library.add(faTrashAlt);
+
 export default {
     name: 'User',
     props: ['Users'],
@@ -78,6 +85,7 @@ export default {
 .one-name {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 3px;
 }
 .btn {
