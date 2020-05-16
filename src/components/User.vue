@@ -76,11 +76,12 @@ export default {
 
 <style scoped>
 .user-card {
-    width: 20%;
+    width: 25%;
     border: 1px solid #333;
     border-radius: 5px;
     padding: 5px;
     text-align: center;
+    margin: 1px 20px;
 }
 .one-name {
     display: flex;

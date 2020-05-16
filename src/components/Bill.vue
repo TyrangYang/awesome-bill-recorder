@@ -47,25 +47,28 @@
                         <th>Who paid?</th>
                         <th>Amount</th>
                         <th>Participants</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="bill in Bills" :key="bill.id">
-                        <td>{{ getUserNameById(bill.payer).name }}</td>
+                        <td>{{ getUserNameById(bill.payer) }}</td>
                         <td>{{ bill.amount }}</td>
                         <td>
                             <div
                                 v-for="(person, idx) in bill.participants"
                                 :key="idx"
                             >
-                                {{ getUserNameById(person).name }}
+                                {{ getUserNameById(person) }}
                             </div>
                         </td>
                         <!-- <font-awesome-icon icon="edit" /> -->
-                        <font-awesome-icon
-                            icon="trash-alt"
-                            @click="$emit('del-bill', bill.id)"
-                        />
+                        <td>
+                            <font-awesome-icon
+                                icon="trash-alt"
+                                @click="$emit('del-bill', bill.id)"
+                            />
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -91,7 +94,7 @@ export default {
     },
     methods: {
         getUserNameById(id) {
-            return this.Users.filter((each) => each.id === id)[0];
+            return this.Users.filter((each) => each.id === id)[0].name;
         },
         addingNewBill() {
             this.adding = !this.adding;
@@ -106,8 +109,6 @@ export default {
                     (each) => each !== e.target.value
                 );
             }
-            console.log(e.target.selected);
-            console.log(this.participants);
             return false;
         },
         createBill() {
@@ -143,10 +144,11 @@ export default {
     padding: 5px 10px;
 }
 .bill-card {
-    width: 40%;
+    width: 50%;
     border: 1px solid #333;
     border-radius: 5px;
     text-align: center;
+    margin: 1px 20px;
 }
 .newbill-btn {
     display: inline-block;
@@ -166,5 +168,19 @@ export default {
     border-radius: 50%;
     cursor: pointer;
     float: right;
+}
+table,
+td,
+th {
+    border: 1px solid black;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    height: 50px;
 }
 </style>
