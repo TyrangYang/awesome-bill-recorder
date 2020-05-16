@@ -51,18 +51,20 @@ export default {
         createUser() {
             let isExist = false;
             for (let each of this.Users) {
-                if (each.name === this.newUserName) {
+                if (each.name === this.newUserName.toUpperCase()) {
                     isExist = true;
                     break;
                 }
             }
             if (isExist) {
-                alert('Name already exist');
+                alert(
+                    'User name already exists. Please note that user names are not case sensitive.'
+                );
                 return;
             }
             let newUser = {
                 id: uuid.v4(),
-                name: this.newUserName,
+                name: this.newUserName.toUpperCase(),
             };
 
             this.$emit('add-user', newUser);
@@ -101,16 +103,5 @@ export default {
 }
 li {
     list-style: none;
-}
-
-.del {
-    background: #ff0000;
-    color: #fff;
-    border: none;
-    padding: 5px 9px;
-    margin: 20px 10px;
-    border-radius: 50%;
-    cursor: pointer;
-    float: right;
 }
 </style>

@@ -157,14 +157,4 @@ export default {
     border-radius: 5px;
     opacity: 0.7;
 }
-.del {
-    background: #ff0000;
-    color: #fff;
-    border: none;
-    padding: 5px 9px;
-    margin: 20px 10px;
-    border-radius: 50%;
-    cursor: pointer;
-    float: right;
-}
 </style>
