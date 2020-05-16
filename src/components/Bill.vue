@@ -1,37 +1,53 @@
 <template>
     <div class="bill-card">
         <h2>Bills</h2>
-        <div class="add-newbill" v-show="adding">
-            <label for="payer-select">Who paid:</label>
-            <select id="payer-select" v-model="payerId">
-                <option disabled value="">Select payer</option>
-                <option
-                    v-for="(user, idx) in Users"
-                    :key="idx"
-                    :value="user.id"
-                    >{{ user.name }}</option
-                >
-            </select>
+        <p v-if="errors.length">
+            <b>Please correct the following error(s):</b>
+            <ul>
+                <li v-for="(error,idx) in errors" :key="idx">{{ error }}</li>
+            </ul>
+        </p>
 
-            <label for="amount-num-box">Amount:</label>
+        <div class="add-newbill" v-show="adding">
+            <label for="payer-select" :class="{'label-err':!payerValid}">Who paid:</label>
+            <div :class="{'select-err':!payerValid}">
+                <select style="width: 100%;" id="payer-select" v-model="payerId">
+                    <option disabled value="">Select payer</option>
+                    <option
+                        v-for="(user, idx) in Users"
+                        :key="idx"
+                        :value="user.id"
+                        >{{ user.name }}</option
+                    >
+                </select>
+            </div>
+            
+
+            <label for="amount-num-box" :class="{'label-err':!amountValid}">Amount:</label>
             <input
                 type="number"
                 id="amount-num-box"
                 placeholder="Please add amount"
                 v-model="amount"
+                :class="{'select-err':!amountValid}"
             />
 
-            <label for="participants-select">Participants:</label>
-            <select multiple id="participants-select" v-model="participants">
-                <option disabled value="">Please select one</option>
-                <option
-                    v-for="(user, idx) in Users"
-                    :key="idx"
-                    :value="user.id"
-                    @mousedown.prevent="multiSelect"
-                    >{{ user.name }}</option
-                >
-            </select>
+            <label for="participants-select" :class="{'label-err':!participantsValid}">Participant(s):</label>
+            <div :class="{'select-err':!participantsValid}">
+                <select multiple id="participants-select" v-model="participants" style="width: 100%;">
+                    <option disabled value=""
+                        >Please include everyone covered by the bill</option
+                    >
+                    <option
+                        v-for="(user, idx) in Users"
+                        :key="idx"
+                        :value="user.id"
+                        @mousedown.prevent="multiSelect"
+                        >{{ user.name }}</option
+                    >
+                </select>
+            </div>
+            
 
             <button @click="createBill" class="newbill-btn">Confirm</button>
             <button @click="addingNewBill" class="newbill-btn">Cancel</button>
@@ -87,14 +103,25 @@ export default {
             amount: '',
             participants: [],
             adding: false,
+            errors:[],
+            payerValid:true,
+            amountValid:true,
+            participantsValid:true
         };
     },
     methods: {
         getUserNameById(id) {
             return this.Users.filter((each) => each.id === id)[0];
         },
+        clearBillInputErrors(){
+            this.errors = [];
+            this.payerValid = true;
+            this.amountValid = true;
+            this.participantsValid = true;
+        },
         addingNewBill() {
             this.adding = !this.adding;
+            this.clearBillInputErrors();
         },
         multiSelect(e) {
             e.target.parentElement.focus();
@@ -110,13 +137,33 @@ export default {
             console.log(this.participants);
             return false;
         },
+        checkBillInput(){
+            //console.log(this.participants.length)
+            if(this.payerId === ''){
+                this.errors.push("Payer required.");
+                this.payerValid = false;
+            }
+            if(this.amount === ''){
+                this.errors.push("Amount required.");
+                this.amountValid = false;
+            }
+            if(this.participants.length === 0){
+                this.errors.push("Participants required.");
+                this.participantsValid = false;
+            }
+            if(this.participants.length === 1 && this.participants[0] === this.payerId){
+                this.errors.push("Payer can't be the only participant.")
+                this.participantsValid = false;
+            }
+            if(!this.payerValid || !this.amountValid || !this.participantsValid){
+                return false;
+            }
+            this.clearBillInputErrors();
+            return true;
+        },
         createBill() {
-            if (
-                this.payerId === '' ||
-                this.amount === '' ||
-                this.participants.length === 0
-            ) {
-                alert('Input Error');
+            this.clearBillInputErrors();
+            if (!this.checkBillInput()) {
                 return;
             }
             let newBill = {
@@ -131,6 +178,7 @@ export default {
             this.payerId = '';
             this.amount = '';
             this.participants = [];
+            this.errors = [];
         },
     },
 };
@@ -156,5 +204,11 @@ export default {
     border: 1px #fff solid;
     border-radius: 5px;
     opacity: 0.7;
+}
+.label-err {
+    color:red;
+}
+.select-err{
+    border: 1.5px solid red;
 }
 </style>
