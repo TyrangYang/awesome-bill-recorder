@@ -10,7 +10,7 @@
 
         <div class="add-newbill" v-show="adding">
             <label for="payer-select" :class="{'label-err':!payerValid}">Who paid:</label>
-            <div :class="{'select-err':!payerValid}">
+            <div :class="{'border-err':!payerValid}">
                 <select style="width: 100%;" id="payer-select" v-model="payerId">
                     <option disabled value="">Select payer</option>
                     <option
@@ -29,11 +29,11 @@
                 id="amount-num-box"
                 placeholder="Please add amount"
                 v-model="amount"
-                :class="{'select-err':!amountValid}"
+                :class="{'border-err':!amountValid}"
             />
 
             <label for="participants-select" :class="{'label-err':!participantsValid}">Participant(s):</label>
-            <div :class="{'select-err':!participantsValid}">
+            <div :class="{'border-err':!participantsValid}">
                 <select multiple id="participants-select" v-model="participants" style="width: 100%;">
                     <option disabled value=""
                         >Please include everyone covered by the bill</option
@@ -208,7 +208,7 @@ export default {
 .label-err {
     color:red;
 }
-.select-err{
+.border-err{
     border: 1.5px solid red;
 }
 </style>

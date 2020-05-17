@@ -1,21 +1,20 @@
 <template>
     <div class="user-card">
         <h2>User List</h2>
-        <div class="one-name" v-for="user in Users" :key="user.id">
-            <p>{{ user.name }}</p>
-            <font-awesome-icon
-                icon="trash-alt"
-                @click="$emit('del-user', user.id)"
-            />
-        </div>
-        <!-- @submit.prevent="createUser" -->
+        <p v-if="errors.length">
+            <b>Please correct the following error(s):</b>
+            <ul>
+                <li v-for="(error,idx) in errors" :key="idx">{{ error }}</li>
+            </ul>
+        </p>
         <form @submit.prevent="createUser" v-show="adding">
-            <label for="new-user-text-box">Name:</label>
+            <label for="new-user-text-box" :class="{'label-err':!nameValid}">Name:</label>
             <input
                 type="text"
                 id="new-user-text-box"
                 v-model="newUserName"
                 placeholder="New Name"
+                :class="{'border-err':!nameValid}"
             />
             <input type="submit" value="Confirm" class="btn" />
             <!-- <button @click="createUser" class="btn">Confirm</button> -->
@@ -25,6 +24,16 @@
         </form>
 
         <button class="btn" @click="addingUser" v-show="!adding">ADD</button>
+
+        <div class="one-name" v-for="user in Users" :key="user.id">
+            <p>{{ user.name }}</p>
+            <font-awesome-icon
+                icon="trash-alt"
+                @click="$emit('del-user', user.id)"
+            />
+        </div>
+        <!-- @submit.prevent="createUser" -->
+        
     </div>
 </template>
 
@@ -42,13 +51,21 @@ export default {
         return {
             newUserName: '',
             adding: false,
+            errors:[],
+            nameValid:true
         };
     },
     methods: {
         addingUser() {
             this.adding = !this.adding;
+            this.clearNameInputErrors();
         },
-        createUser() {
+        clearNameInputErrors(){
+            this.nameValid = true;
+            this.errors = [];
+        },
+        checkUserName() {
+            this.clearNameInputErrors();
             let isExist = false;
             for (let each of this.Users) {
                 if (each.name === this.newUserName.toUpperCase()) {
@@ -56,10 +73,19 @@ export default {
                     break;
                 }
             }
-            if (isExist) {
-                alert(
-                    'User name already exists. Please note that user names are not case sensitive.'
-                );
+            if(isExist){
+                this.errors.push('User name already exists. Please note that user names are not case sensitive.');
+                this.nameValid = false;
+            }
+            if(this.newUserName === ''){
+                this.errors.push('User name required.');
+                this.nameValid = false;
+            }
+            return this.nameValid;
+        },
+        createUser() {
+            
+            if (!this.checkUserName()) {
                 return;
             }
             let newUser = {
@@ -103,5 +129,11 @@ export default {
 }
 li {
     list-style: none;
+}
+.label-err {
+    color:red;
+}
+.border-err{
+    border: 1.5px solid red;
 }
 </style>
