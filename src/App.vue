@@ -106,11 +106,13 @@ export default {
                 }
             }
             if (used) {
-                alert('User already in bills! Delete not allow!');
+                alert(
+                    'Remove failed. There are still bills related to this user.'
+                );
             } else {
                 if (
                     confirm(
-                        `Do you really want to delete ${
+                        `Do you really want to remove user ${
                             this.Users.filter((each) => each.id == id)[0].name
                         }?`
                     )
@@ -126,7 +128,12 @@ export default {
             this.Bills.push(bill);
         },
         deleteBill(id) {
-            if (confirm(`Do you really want to delete ${id}?`)) {
+            let delBill = this.Bills.filter((each) => each.id == id)[0];
+            if (
+                confirm(
+                    `Do you really want to delete this bill in the amount of ${delBill.amount}?`
+                )
+            ) {
                 this.Bills = this.Bills.filter((each) => each.id !== id);
             }
         },
