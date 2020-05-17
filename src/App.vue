@@ -1,14 +1,19 @@
 <template>
     <div id="app">
-        <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
-        <!-- <HelloWorld msg="Welcome to Your Vue.js App" /> -->
-        <User v-bind:Users="Users" @del-user="deleteUser" @add-user="addUser" />
-        <Bill
-            v-bind:Users="Users"
-            v-bind:Bills="Bills"
-            @add-bill="addBill"
-            @del-bill="deleteBill"
-        />
+        <div class="mainBoard">
+            <Summary :Users="Users" :Bills="Bills" />
+            <Bill
+                v-bind:Users="Users"
+                v-bind:Bills="Bills"
+                @add-bill="addBill"
+                @del-bill="deleteBill"
+            />
+            <User
+                v-bind:Users="Users"
+                @del-user="deleteUser"
+                @add-user="addUser"
+            />
+        </div>
     </div>
 </template>
 
@@ -16,11 +21,14 @@
 // import HelloWorld from './components/HelloWorld.vue';
 import User from './components/User';
 import Bill from './components/Bill';
+import Summary from './components/Summary';
+import Dinero from 'dinero.js';
 export default {
     name: 'App',
     components: {
         User,
         Bill,
+        Summary,
     },
     data() {
         return {
@@ -28,13 +36,52 @@ export default {
             Users: [
                 { id: 'userId1', name: 'testName1' },
                 { id: 'userId2', name: 'testName2' },
+                { id: 'userId3', name: 'testName3' },
+                { id: 'userId4', name: 'testName4' },
+                { id: 'userId5', name: 'testName5' },
             ],
             Bills: [
                 {
                     id: 'bill1',
                     payer: 'userId1',
-                    amount: 100,
+                    amount: Dinero({ amount: 10000 }),
                     participants: ['userId1', 'userId2'],
+                },
+                {
+                    id: 'bill2',
+                    payer: 'userId2',
+                    amount: Dinero({ amount: 40000 }),
+                    participants: ['userId1', 'userId2', 'userId3'],
+                },
+                {
+                    id: 'bill3',
+                    payer: 'userId3',
+                    amount: Dinero({ amount: 50030 }),
+                    participants: ['userId3', 'userId2'],
+                },
+                {
+                    id: 'bill4',
+                    payer: 'userId4',
+                    amount: Dinero({ amount: 20045 }),
+                    participants: ['userId1', 'userId5'],
+                },
+                {
+                    id: 'bill5',
+                    payer: 'userId2',
+                    amount: Dinero({ amount: 10072 }),
+                    participants: ['userId5'],
+                },
+                {
+                    id: 'bill6',
+                    payer: 'userId3',
+                    amount: Dinero({ amount: 7063 }),
+                    participants: [
+                        'userId1',
+                        'userId2',
+                        'userId3',
+                        'userId4',
+                        'userId5',
+                    ],
                 },
             ],
 
@@ -93,5 +140,8 @@ export default {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
+}
+.mainBoard {
+    display: flex;
 }
 </style>
