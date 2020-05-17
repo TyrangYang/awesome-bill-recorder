@@ -53,7 +53,7 @@
                 <tbody>
                     <tr v-for="bill in Bills" :key="bill.id">
                         <td>{{ getUserNameById(bill.payer) }}</td>
-                        <td>{{ bill.amount }}</td>
+                        <td>{{ bill.amount.toFormat() }}</td>
                         <td>
                             <div
                                 v-for="(person, idx) in bill.participants"
@@ -80,6 +80,7 @@
 import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons';
+import Dinero from 'dinero.js';
 library.add(faTrashAlt, faEdit);
 export default {
     name: 'Bill',
@@ -123,7 +124,7 @@ export default {
             let newBill = {
                 id: uuid.v4(),
                 payer: this.payerId,
-                amount: +this.amount,
+                amount: Dinero({ amount: +this.amount * 100 }),
                 participants: this.participants,
             };
             this.$emit('add-bill', newBill);

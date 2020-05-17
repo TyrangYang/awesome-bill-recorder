@@ -22,6 +22,7 @@
 import User from './components/User';
 import Bill from './components/Bill';
 import Summary from './components/Summary';
+import Dinero from 'dinero.js';
 export default {
     name: 'App',
     components: {
@@ -43,37 +44,37 @@ export default {
                 {
                     id: 'bill1',
                     payer: 'userId1',
-                    amount: 100,
+                    amount: Dinero({ amount: 10000 }),
                     participants: ['userId1', 'userId2'],
                 },
                 {
                     id: 'bill2',
                     payer: 'userId2',
-                    amount: 400,
+                    amount: Dinero({ amount: 40000 }),
                     participants: ['userId1', 'userId2', 'userId3'],
                 },
                 {
                     id: 'bill3',
                     payer: 'userId3',
-                    amount: 500.3,
+                    amount: Dinero({ amount: 50030 }),
                     participants: ['userId3', 'userId2'],
                 },
                 {
                     id: 'bill4',
                     payer: 'userId4',
-                    amount: 200.45,
+                    amount: Dinero({ amount: 20045 }),
                     participants: ['userId1', 'userId5'],
                 },
                 {
                     id: 'bill5',
                     payer: 'userId2',
-                    amount: 100.72,
+                    amount: Dinero({ amount: 10072 }),
                     participants: ['userId5'],
                 },
                 {
                     id: 'bill6',
                     payer: 'userId3',
-                    amount: 70.63,
+                    amount: Dinero({ amount: 7063 }),
                     participants: [
                         'userId1',
                         'userId2',

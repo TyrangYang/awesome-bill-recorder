@@ -5,13 +5,14 @@
             <p>
                 <b>{{ getUserNameById(each.from) }}</b> should give
                 <b>{{ getUserNameById(each.to) }}</b
-                >: <b>${{ each.amount }}</b>
+                >: <b>{{ each.amount }}</b>
             </p>
         </div>
     </div>
 </template>
 
 <script>
+import Dinero from 'dinero.js';
 export default {
     name: 'Summary',
     props: ['Users', 'Bills'],
@@ -19,7 +20,7 @@ export default {
         summary: function() {
             let m = new Map();
             for (let bill of this.Bills) {
-                let avg = bill.amount / bill.participants.length;
+                let avg = bill.amount.divide(bill.participants.length);
                 for (let one of bill.participants) {
                     if (one != bill.payer) {
                         let from = one,
@@ -30,11 +31,11 @@ export default {
                             key = JSON.stringify([from, to]);
                         } else {
                             key = JSON.stringify([to, from]);
-                            amount = 0 - avg;
+                            amount = Dinero({ amount: 0 }).subtract(avg);
                         }
                         if (!m.has(key)) m.set(key, amount);
                         else {
-                            m.set(key, m.get(key) + amount);
+                            m.set(key, m.get(key).add(amount));
                         }
                     }
                 }
@@ -43,17 +44,21 @@ export default {
             let res = [];
             m.forEach((val, key) => {
                 let [from, to] = JSON.parse(key);
-                if (val > 0) {
+                if (val.getAmount() > 0) {
                     res.push({
                         from,
                         to,
-                        amount: val,
+                        amount: val.toFormat(),
                     });
+                } else if (val.getAmount() == 0) {
+                    console.log();
                 } else {
                     res.push({
                         from: to,
                         to: from,
-                        amount: 0 - val,
+                        amount: Dinero({ amount: 0 })
+                            .subtract(val)
+                            .toFormat(),
                     });
                 }
             });
