@@ -23,6 +23,7 @@ import User from './components/User';
 import Bill from './components/Bill';
 import Summary from './components/Summary';
 import Dinero from 'dinero.js';
+import moment from 'moment';
 export default {
     name: 'App',
     components: {
@@ -46,30 +47,35 @@ export default {
                     payer: 'userId1',
                     amount: Dinero({ amount: 10000 }),
                     participants: ['userId1', 'userId2'],
+                    date: moment('2020-04-20'),
                 },
                 {
                     id: 'bill2',
                     payer: 'userId2',
                     amount: Dinero({ amount: 40000 }),
                     participants: ['userId1', 'userId2', 'userId3'],
+                    date: moment('2020-01-01'),
                 },
                 {
                     id: 'bill3',
                     payer: 'userId3',
                     amount: Dinero({ amount: 50030 }),
                     participants: ['userId3', 'userId2'],
+                    date: moment('2020-02-05'),
                 },
                 {
                     id: 'bill4',
                     payer: 'userId4',
                     amount: Dinero({ amount: 20045 }),
                     participants: ['userId1', 'userId5'],
+                    date: moment('2020-02-09'),
                 },
                 {
                     id: 'bill5',
                     payer: 'userId2',
                     amount: Dinero({ amount: 10072 }),
                     participants: ['userId5'],
+                    date: moment('2019-12-05'),
                 },
                 {
                     id: 'bill6',

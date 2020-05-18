@@ -48,6 +48,17 @@
                 </select>
             </div>
             
+            <div>
+                <input type="checkbox" id="date-checkbox" v-model="includeDate">
+                <label for="date-checkbox">Include Date</label>
+                <br>
+                <label for="date-input" v-show="includeDate">Date: </label>
+                <div :class="{'border-err':!dateValid}">
+                    <input type="date" id="date-input" style="width: 100%;" v-show="includeDate" :value="billDate && billDate.format().substr(0,10)"
+                        @input="billDateInput">
+                </div>
+            </div>
+            
 
             <button @click="createBill" class="newbill-btn">Confirm</button>
             <button @click="addingNewBill" class="newbill-btn">Cancel</button>
@@ -63,6 +74,7 @@
                         <th>Who paid?</th>
                         <th>Amount</th>
                         <th>Participants</th>
+                        <th>Date</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -77,6 +89,9 @@
                             >
                                 {{ getUserNameById(person) }}
                             </div>
+                        </td>
+                        <td>
+                            {{bill.date && bill.date.format().substr(0,10)}}
                         </td>
                         <!-- <font-awesome-icon icon="edit" /> -->
                         <td>
@@ -97,6 +112,7 @@ import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Dinero from 'dinero.js';
+import moment from 'moment';
 library.add(faTrashAlt, faEdit);
 export default {
     name: 'Bill',
@@ -107,13 +123,20 @@ export default {
             amount: '',
             participants: [],
             adding: false,
-            errors:[],
-            payerValid:true,
-            amountValid:true,
-            participantsValid:true
+            errors: [],
+            payerValid: true,
+            amountValid: true,
+            participantsValid: true,
+            includeDate: false,
+            billDate: moment(),
+            dateValid: true
         };
     },
     methods: {
+        billDateInput(e){
+            console.log('input valueAsDate ' + e.target.value);
+            this.billDate = e.target.value && moment(e.target.value);
+        },
         getUserNameById(id) {
             return this.Users.filter((each) => each.id === id)[0].name;
         },
@@ -122,10 +145,13 @@ export default {
             this.payerValid = true;
             this.amountValid = true;
             this.participantsValid = true;
+            //this.billDate = moment();
+            this.dateValid = true;
         },
         addingNewBill() {
             this.adding = !this.adding;
             this.clearBillInputErrors();
+            this.includeDate = false;
         },
         multiSelect(e) {
             e.target.parentElement.focus();
@@ -157,7 +183,11 @@ export default {
                 this.errors.push("Payer can't be the only participant.")
                 this.participantsValid = false;
             }
-            if(!this.payerValid || !this.amountValid || !this.participantsValid){
+            if(this.includeDate === true && this.billDate === ''){
+                this.errors.push("Date can't be empty when it's included.")
+                this.dateValid = false;
+            }
+            if(!this.payerValid || !this.amountValid || !this.participantsValid || !this.dateValid){
                 return false;
             }
             this.clearBillInputErrors();
@@ -166,13 +196,18 @@ export default {
         createBill() {
             this.clearBillInputErrors();
             if (!this.checkBillInput()) {
+                this.includeDate = false;
                 return;
+            }
+            if(!this.includeDate){
+                this.billDate = ''
             }
             let newBill = {
                 id: uuid.v4(),
                 payer: this.payerId,
                 amount: Dinero({ amount: +this.amount * 100 }),
                 participants: this.participants,
+                date: this.billDate
             };
             this.$emit('add-bill', newBill);
             this.addingNewBill();
@@ -180,7 +215,8 @@ export default {
             this.payerId = '';
             this.amount = '';
             this.participants = [];
-            this.errors = [];
+            this.billDate = moment();
+            this.includeDate = false;
         },
     },
 };
