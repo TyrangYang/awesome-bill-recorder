@@ -71,15 +71,15 @@
             <table id="billTable">
                 <thead>
                     <tr>
-                        <th>Who paid?</th>
-                        <th>Amount</th>
+                        <th @click="sort('payer')">Who paid?</th>
+                        <th @click="sort('amount')">Amount</th>
                         <th>Participants</th>
-                        <th>Date</th>
+                        <th @click="sort('date')">Date</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="bill in Bills" :key="bill.id">
+                    <tr v-for="bill in sortedBills" :key="bill.id">
                         <td>{{ getUserNameById(bill.payer) }}</td>
                         <td>{{ bill.amount.toFormat() }}</td>
                         <td>
@@ -104,7 +104,9 @@
                 </tbody>
             </table>
         </div>
+        <div>{{test}}</div>
     </div>
+    
 </template>
 
 <script>
@@ -129,10 +131,59 @@ export default {
             participantsValid: true,
             includeDate: false,
             billDate: moment(),
-            dateValid: true
+            dateValid: true,
+            currentSort:'payer',
+            currentSortDir:'asc'
         };
     },
+    computed:{
+        sortedBills(){
+            //console.log(this.Bills); 
+            return this.deepCopyBills.sort((a,b) => {
+                let modifier = 1;
+                if(this.currentSortDir === 'desc') modifier = -1;
+                if(this.currentSort === 'date'){
+                    if(a[this.currentSort] === ''){
+                        return 0;
+                    }
+                    if(a[this.currentSort].isBefore(b[this.currentSort])) return -1 * modifier;
+                    if(a[this.currentSort].isAfter(b[this.currentSort])) return 1 * modifier;
+                    return 0;
+                }
+                if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                return 0;
+                });
+        },
+        deepCopyBills(){
+            let billsCopy = [];
+            for(let bill of this.Bills){
+                let oneBill = {
+                    payer:bill.payer,
+                    amount:Dinero(bill.amount.getAmount()),
+                    id: bill.id,
+                    participants: JSON.parse(JSON.stringify(bill.participants)),
+                    date: moment(bill.date.format()),
+                }
+                billsCopy.push(oneBill);
+            }
+            console.log(billsCopy)
+            return billsCopy;
+        },
+        test(){
+            console.log(this.sortedBills);
+            return this.sortedBills;
+        }
+    },
     methods: {
+        
+        sort(s) {
+            //if s == current sort, reverse
+            if(s === this.currentSort) {
+            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+            }
+            this.currentSort = s;
+        },
         billDateInput(e){
             console.log('input valueAsDate ' + e.target.value);
             this.billDate = e.target.value && moment(e.target.value);
