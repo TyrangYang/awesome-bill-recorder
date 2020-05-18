@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <div class="mainBoard">
-            <Summary :Users="Users" :Bills="Bills" />
+            <Summary :Users="Users" :Bills="Bills" @add-bill="addBill" />
             <Bill
                 v-bind:Users="Users"
                 v-bind:Bills="Bills"
