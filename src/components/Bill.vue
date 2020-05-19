@@ -79,7 +79,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="bill in sortedBills" :key="bill.id">
+                    <tr v-for="bill in sortedBills(deepCopyBills)" :key="bill.id">
                         <td>{{ getUserNameById(bill.payer) }}</td>
                         <td>{{ bill.amount.toFormat() }}</td>
                         <td>
@@ -104,7 +104,6 @@
                 </tbody>
             </table>
         </div>
-        <div>{{test}}</div>
     </div>
     
 </template>
@@ -137,17 +136,40 @@ export default {
         };
     },
     computed:{
-        sortedBills(){
+        deepCopyBills(){
+            let billsCopy = [];
+            for(let bill of this.Bills){
+                let oneBill = {
+                    payer:bill.payer,
+                    amount:Dinero({ amount: bill.amount.getAmount() }),
+                    id: bill.id,
+                    participants: JSON.parse(JSON.stringify(bill.participants)),
+                    date: bill.date && moment(bill.date.format()),
+                }
+                billsCopy.push(oneBill);
+            }
+            return billsCopy;
+        }
+    },
+    methods: {
+        sortedBills(oriBills){
             //console.log(this.Bills); 
-            return this.deepCopyBills.sort((a,b) => {
+            return oriBills.sort((a,b) => {
                 let modifier = 1;
                 if(this.currentSortDir === 'desc') modifier = -1;
+                
                 if(this.currentSort === 'date'){
-                    if(a[this.currentSort] === ''){
-                        return 0;
-                    }
-                    if(a[this.currentSort].isBefore(b[this.currentSort])) return -1 * modifier;
-                    if(a[this.currentSort].isAfter(b[this.currentSort])) return 1 * modifier;
+                    //move all bills without date to the end of the list
+                    if(a['date'] === undefined && b['date'] != undefined) return 1;
+                    if(a['date'] != undefined && b['date'] === undefined) return -1;
+                    if(a['date'] === undefined && b['date'] === undefined) return 0;
+                    if(a['date'].isBefore(b['date'])) return -1 * modifier;
+                    if(a['date'].isAfter(b['date'])) return 1 * modifier;
+                    return 0;
+                }
+                if(this.currentSort === 'amount'){
+                    if(a[this.currentSort].getAmount() < b[this.currentSort].getAmount()) return -1 * modifier;
+                    if(a[this.currentSort].getAmount() > b[this.currentSort].getAmount()) return 1 * modifier;
                     return 0;
                 }
                 if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
@@ -155,28 +177,6 @@ export default {
                 return 0;
                 });
         },
-        deepCopyBills(){
-            let billsCopy = [];
-            for(let bill of this.Bills){
-                let oneBill = {
-                    payer:bill.payer,
-                    amount:Dinero(bill.amount.getAmount()),
-                    id: bill.id,
-                    participants: JSON.parse(JSON.stringify(bill.participants)),
-                    date: moment(bill.date.format()),
-                }
-                billsCopy.push(oneBill);
-            }
-            console.log(billsCopy)
-            return billsCopy;
-        },
-        test(){
-            console.log(this.sortedBills);
-            return this.sortedBills;
-        }
-    },
-    methods: {
-        
         sort(s) {
             //if s == current sort, reverse
             if(s === this.currentSort) {
@@ -185,7 +185,6 @@ export default {
             this.currentSort = s;
         },
         billDateInput(e){
-            console.log('input valueAsDate ' + e.target.value);
             this.billDate = e.target.value && moment(e.target.value);
         },
         getUserNameById(id) {
