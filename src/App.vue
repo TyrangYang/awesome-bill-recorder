@@ -156,5 +156,6 @@ export default {
 }
 .mainBoard {
     display: flex;
+    /* flex-wrap: wrap; */
 }
 </style>

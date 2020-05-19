@@ -15,7 +15,7 @@
         </select>
         <div
             class="oneline"
-            v-for="(each, idx) in sortSummary(summary)"
+            v-for="(each, idx) in sortSummary(deepCopySummary)"
             :key="idx"
         >
             <p>
@@ -80,7 +80,7 @@ export default {
                         amount: val,
                     });
                 } else if (val.getAmount() == 0) {
-                    console.log();
+                    return;
                 } else {
                     res.push({
                         from: to,
@@ -92,13 +92,25 @@ export default {
 
             return res;
         },
+        deepCopySummary: function() {
+            let res = [];
+            for (let each of this.summary) {
+                let { from, to, amount } = each;
+                let copy = {
+                    from,
+                    to,
+                    amount: Dinero({ amount: amount.getAmount() }),
+                };
+                res.push(copy);
+            }
+            return res;
+        },
     },
     methods: {
         getUserNameById(id) {
             return this.Users.filter((each) => each.id === id)[0].name;
         },
         settleSummary(willBecomeNewBill) {
-            console.log(willBecomeNewBill);
             if (confirm('Will your settle this Bill?')) {
                 let newBill = {
                     id: uuid.v4(),
@@ -110,6 +122,9 @@ export default {
             }
         },
         sortSummary: function(oriSummary) {
+            if (this.sortState == 0) {
+                return this.summary;
+            }
             if (this.sortState == 1) {
                 oriSummary.sort((a, b) => {
                     if (a.from < b.from) return -1;
