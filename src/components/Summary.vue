@@ -33,6 +33,7 @@
 import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faArchive } from '@fortawesome/free-solid-svg-icons';
+import moment from 'moment';
 library.add(faArchive);
 import Dinero from 'dinero.js';
 export default {
@@ -117,6 +118,7 @@ export default {
                     payer: willBecomeNewBill.from,
                     amount: willBecomeNewBill.amount,
                     participants: [willBecomeNewBill.to],
+                    date: moment(),
                 };
                 this.$emit('add-bill', newBill);
             }
