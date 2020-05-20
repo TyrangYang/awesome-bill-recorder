@@ -17,7 +17,6 @@
                 :class="{'border-err':!nameValid}"
             />
             <input type="submit" value="Confirm" class="btn" />
-            <!-- <button @click="createUser" class="btn">Confirm</button> -->
             <button class="btn" @click.prevent="addingUser" v-show="adding">
                 Cancel
             </button>
@@ -32,7 +31,6 @@
                 @click="$emit('del-user', user.id)"
             />
         </div>
-        <!-- @submit.prevent="createUser" -->
         
     </div>
 </template>

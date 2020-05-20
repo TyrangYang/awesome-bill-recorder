@@ -3,19 +3,17 @@
         <h2>Summary</h2>
         <select class="mergeSummary" v-model="mergeState">
             <option value="0">Not merge</option>
-            <option value="1">merge by Payer</option>
-            <option value="2">merge by receiver</option>
+            <option value="1">Merge</option>
         </select>
         <select class="sortSummary" v-model="sortState">
-            <option value="0">Not sort</option>
-            <option value="1">Group by Payer</option>
-            <option value="2">Group by receiver</option>
-            <option value="3">Sort by amount(increasing)</option>
-            <option value="4">Sort by amount(decreasing)</option>
+            <option value="0">Group by Payer</option>
+            <option value="1">Group by receiver</option>
+            <option value="2">Sort by amount(increasing)</option>
+            <option value="3">Sort by amount(decreasing)</option>
         </select>
         <div
             class="oneline"
-            v-for="(each, idx) in sortSummary(deepCopySummary)"
+            v-for="(each, idx) in sortSummary(mergeSummary(summary))"
             :key="idx"
         >
             <p>
@@ -25,7 +23,6 @@
             </p>
             <font-awesome-icon icon="archive" @click="settleSummary(each)" />
         </div>
-        <!-- <div>{{ mergeSummary(summary) }}</div> -->
     </div>
 </template>
 
@@ -93,26 +90,21 @@ export default {
 
             return res;
         },
-        deepCopySummary: function() {
-            let res = [];
-            for (let each of this.summary) {
-                let { from, to, amount } = each;
-                let copy = {
-                    from,
-                    to,
-                    amount: Dinero({ amount: amount.getAmount() }),
-                };
-                res.push(copy);
-            }
-            return res;
-        },
     },
     methods: {
         getUserNameById(id) {
             return this.Users.filter((each) => each.id === id)[0].name;
         },
         settleSummary(willBecomeNewBill) {
-            if (confirm('Will your settle this Bill?')) {
+            let confirmed = false;
+            if (this.mergeState != 0) {
+                confirmed =
+                    confirm('Will your settle this Bill?') &&
+                    confirm(
+                        'WARRING!! Settle merged a bill will affect other bills!'
+                    );
+            } else confirmed = confirm('Will your settle this Bill?');
+            if (confirmed) {
                 let newBill = {
                     id: uuid.v4(),
                     payer: willBecomeNewBill.from,
@@ -125,26 +117,23 @@ export default {
         },
         sortSummary: function(oriSummary) {
             if (this.sortState == 0) {
-                return this.summary;
-            }
-            if (this.sortState == 1) {
                 oriSummary.sort((a, b) => {
                     if (a.from < b.from) return -1;
                     else return 1;
                 });
             }
-            if (this.sortState == 2) {
+            if (this.sortState == 1) {
                 oriSummary.sort((a, b) => {
                     if (a.to < b.to) return -1;
                     else return 1;
                 });
             }
-            if (this.sortState == 3) {
+            if (this.sortState == 2) {
                 oriSummary.sort(
                     (a, b) => a.amount.getAmount() - b.amount.getAmount()
                 );
             }
-            if (this.sortState == 4) {
+            if (this.sortState == 3) {
                 oriSummary.sort(
                     (a, b) => b.amount.getAmount() - a.amount.getAmount()
                 );
@@ -155,37 +144,68 @@ export default {
             if (this.mergeState == 0) {
                 return oriSummary;
             }
+
             let record = {};
+
+            for (let usr of this.Users) {
+                record[usr.id] = 0;
+            }
 
             for (let each of oriSummary) {
                 if (each.amount.getAmount() > 0) {
-                    if (record[each.from] === undefined) {
-                        record[each.from] = 0 - each.amount.getAmount();
-                    } else {
-                        record[each.from] -= each.amount.getAmount();
-                    }
-                    if (record[each.to] === undefined) {
-                        record[each.to] = each.amount.getAmount();
-                    } else {
-                        record[each.to] += each.amount.getAmount();
-                    }
+                    record[each.from] -= each.amount.getAmount();
+                    record[each.to] += each.amount.getAmount();
                 } else {
                     // < 0 (not == 0)
-                    if (record[each.from] === undefined) {
-                        record[each.from] = each.amount.getAmount();
+                    record[each.from] += each.amount.getAmount();
+                    record[each.to] -= each.amount.getAmount();
+                }
+            }
+
+            let payerList = [],
+                receiverList = [];
+            for (let each in record) {
+                if (record[each] < 0) {
+                    payerList.push([each, record[each]]);
+                } else if (record[each] > 0) {
+                    receiverList.push([each, record[each]]);
+                } else {
+                    // record[each] == 0
+                    continue;
+                }
+            }
+            // sort two list
+            payerList.sort((a, b) => a[1] - b[1]);
+            receiverList.sort((a, b) => b[1] - a[1]);
+
+            // Greedy method to calculate a relative less transaction
+            let res = [];
+            while (payerList.length != 0) {
+                let curPayer = payerList.pop();
+                while (curPayer[1] != 0) {
+                    // current payer still need pay somebody
+                    let curReceiver = receiverList.pop();
+                    if (curReceiver[1] <= Math.abs(curPayer[1])) {
+                        res.push({
+                            from: curPayer[0],
+                            to: curReceiver[0],
+                            amount: Dinero({ amount: curReceiver[1] }),
+                        });
+                        curPayer[1] += curReceiver[1];
                     } else {
-                        record[each.from] += each.amount.getAmount();
-                    }
-                    if (record[each.to] === undefined) {
-                        record[each.to] = 0 - each.amount.getAmount();
-                    } else {
-                        record[each.to] -= each.amount.getAmount();
+                        res.push({
+                            from: curPayer[0],
+                            to: curReceiver[0],
+                            amount: Dinero({ amount: 0 - curPayer[1] }),
+                        });
+                        curReceiver[1] -= Math.abs(curPayer[1]);
+                        curPayer[1] = 0;
+                        receiverList.push(curReceiver);
                     }
                 }
             }
 
-            console.log(record);
-            return record;
+            return res;
         },
     },
 };
