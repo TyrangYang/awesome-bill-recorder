@@ -93,7 +93,7 @@
                 />
                 <label for="Unevenly-checkbox">Split unevenly</label>
                 <span v-show="unevenlySplit && amount === ''" style="color: red"
-                    >amount should not empty</span
+                    >(amount should not empty)</span
                 >
                 <div
                     v-show="unevenlySplit && amount !== ''"
@@ -188,7 +188,7 @@ export default {
     data() {
         return {
             payerId: '',
-            amount: '100',
+            amount: '',
             participants: [],
             adding: false,
             errors: [],
@@ -196,7 +196,7 @@ export default {
             amountValid: true,
             participantsValid: true,
             includeDate: false,
-            unevenlySplit: true,
+            unevenlySplit: false,
             unevenlyRecord: {},
             billDate: moment(),
             dateValid: true,
@@ -370,19 +370,37 @@ export default {
             if (!this.includeDate) {
                 this.billDate = '';
             }
-            let newBill = {
-                id: uuid.v4(),
-                payer: this.payerId,
-                amount: Dinero({ amount: +this.amount * 100 }),
-                participants: this.participants,
-                date: this.billDate,
-            };
-            this.$emit('add-bill', newBill);
+
+            if (this.unevenlySplit) {
+                for (const each in this.unevenlyRecord) {
+                    if (each == this.payerId || this.unevenlyRecord[each] == 0)
+                        continue;
+                    let newBill = {
+                        id: uuid.v4(),
+                        payer: this.payerId,
+                        amount: Dinero({ amount: +this.unevenlyRecord[each] }),
+                        participants: [each],
+                        date: this.billDate,
+                    };
+                    this.$emit('add-bill', newBill);
+                }
+            } else {
+                let newBill = {
+                    id: uuid.v4(),
+                    payer: this.payerId,
+                    amount: Dinero({ amount: +this.amount * 100 }),
+                    participants: this.participants,
+                    date: this.billDate,
+                };
+                this.$emit('add-bill', newBill);
+            }
+
             this.addingNewBill();
             //clean up
             this.payerId = '';
             this.amount = '';
             this.participants = [];
+            this.unevenlyRecord = {};
             this.billDate = moment();
             this.includeDate = false;
         },
