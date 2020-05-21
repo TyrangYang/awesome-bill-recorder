@@ -1,18 +1,24 @@
 <template>
     <div class="bill-card">
         <h2>Bills</h2>
-        <p v-if="errors.length">
+        <div v-if="errors.length">
             <b>Please correct the following error(s):</b>
             <ul>
-                <li v-for="(error,idx) in errors" :key="idx">{{ error }}</li>
+                <li v-for="(error, idx) in errors" :key="idx">{{ error }}</li>
             </ul>
-        </p>
+        </div>
 
         <div class="add-newbill" v-show="adding">
-            <label for="payer-select" :class="{'label-err':!payerValid}">Who paid:</label>
-            <div :class="{'border-err':!payerValid}">
-                <select style="width: 100%;" id="payer-select" v-model="payerId">
-                    <option disabled value="">Select payer</option>
+            <label for="payer-select" :class="{ 'label-err': !payerValid }"
+                >Who paid:</label
+            >
+            <div :class="{ 'border-err': !payerValid }">
+                <select
+                    style="width: 100%;"
+                    id="payer-select"
+                    v-model="payerId"
+                >
+                    <option disabled value>Select payer</option>
                     <option
                         v-for="(user, idx) in Users"
                         :key="idx"
@@ -21,44 +27,103 @@
                     >
                 </select>
             </div>
-            
 
-            <label for="amount-num-box" :class="{'label-err':!amountValid}">Amount:</label>
+            <label for="amount-num-box" :class="{ 'label-err': !amountValid }"
+                >Amount:</label
+            >
             <input
                 type="number"
                 id="amount-num-box"
                 placeholder="Please add amount"
                 v-model="amount"
-                :class="{'border-err':!amountValid}"
+                :class="{ 'border-err': !amountValid }"
             />
 
-            <label for="participants-select" :class="{'label-err':!participantsValid}">Participant(s):</label>
-            <div :class="{'border-err':!participantsValid}">
-                <select multiple id="participants-select" v-model="participants" style="width: 100%;">
-                    <option disabled value=""
+            <label
+                for="participants-select"
+                :class="{ 'label-err': !participantsValid }"
+                >Participant(s):</label
+            >
+            <div :class="{ 'border-err': !participantsValid }">
+                <select
+                    multiple
+                    id="participants-select"
+                    v-model="participants"
+                    style="width: 100%;"
+                >
+                    <option disabled value
                         >Please include everyone covered by the bill</option
                     >
                     <option
                         v-for="(user, idx) in Users"
                         :key="idx"
                         :value="user.id"
-                        @mousedown.prevent="multiSelect"
+                        @mousedown.prevent="multiSelectEvent"
                         >{{ user.name }}</option
                     >
                 </select>
             </div>
-            
+
             <div>
-                <input type="checkbox" id="date-checkbox" v-model="includeDate">
+                <input
+                    type="checkbox"
+                    id="date-checkbox"
+                    v-model="includeDate"
+                />
                 <label for="date-checkbox">Include Date</label>
-                <br>
-                <label for="date-input" v-show="includeDate">Date: </label>
-                <div :class="{'border-err':!dateValid}">
-                    <input type="date" id="date-input" style="width: 100%;" v-show="includeDate" :value="billDate && billDate.format().substr(0,10)"
-                        @input="billDateInput">
+                <br />
+                <label for="date-input" v-show="includeDate">Date:</label>
+                <div :class="{ 'border-err': !dateValid }">
+                    <input
+                        type="date"
+                        id="date-input"
+                        style="width: 100%;"
+                        v-show="includeDate"
+                        :value="billDate && billDate.format().substr(0, 10)"
+                        @input="billDateInput"
+                    />
                 </div>
             </div>
-            
+
+            <div>
+                <input
+                    type="checkbox"
+                    id="Unevenly-checkbox"
+                    v-model="unevenlySplit"
+                />
+                <label for="Unevenly-checkbox">Split unevenly</label>
+                <span v-show="unevenlySplit && amount === ''" style="color: red"
+                    >amount should not empty</span
+                >
+                <div
+                    v-show="unevenlySplit && amount !== ''"
+                    v-for="(each, idx) in participants"
+                    :key="idx"
+                >
+                    <label for="idx"
+                        >{{ getUserNameById(each) }} should spend:</label
+                    >
+                    <span v-text="unevenlyRecord[each] / 100"></span>
+                    <br />
+                    <input
+                        type="number"
+                        min="0"
+                        :max="amount"
+                        :value="unevenlyRecord[each] / 100"
+                        @input="
+                            unevenlyRecord[each] = $event.target.value * 100
+                        "
+                    />
+                    <input
+                        type="range"
+                        id="idx"
+                        min="0"
+                        :max="amount * 100"
+                        v-model="unevenlyRecord[each]"
+                        @change="test"
+                    />
+                </div>
+            </div>
 
             <button @click="createBill" class="newbill-btn">Confirm</button>
             <button @click="addingNewBill" class="newbill-btn">Cancel</button>
@@ -79,7 +144,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="bill in sortedBills(deepCopyBills)" :key="bill.id">
+                    <tr
+                        v-for="bill in sortedBills(deepCopyBills)"
+                        :key="bill.id"
+                    >
                         <td>{{ getUserNameById(bill.payer) }}</td>
                         <td>{{ bill.amount.toFormat() }}</td>
                         <td>
@@ -91,7 +159,7 @@
                             </div>
                         </td>
                         <td>
-                            {{bill.date && bill.date.format().substr(0,10)}}
+                            {{ bill.date && bill.date.format().substr(0, 10) }}
                         </td>
                         <!-- <font-awesome-icon icon="edit" /> -->
                         <td>
@@ -105,7 +173,6 @@
             </table>
         </div>
     </div>
-    
 </template>
 
 <script>
@@ -121,7 +188,7 @@ export default {
     data() {
         return {
             payerId: '',
-            amount: '',
+            amount: '100',
             participants: [],
             adding: false,
             errors: [],
@@ -129,68 +196,85 @@ export default {
             amountValid: true,
             participantsValid: true,
             includeDate: false,
+            unevenlySplit: true,
+            unevenlyRecord: {},
             billDate: moment(),
             dateValid: true,
-            currentSort:'payer',
-            currentSortDir:'asc'
+            currentSort: 'payer',
+            currentSortDir: 'asc',
         };
     },
-    computed:{
-        deepCopyBills(){
+
+    computed: {
+        deepCopyBills() {
             let billsCopy = [];
-            for(let bill of this.Bills){
+            for (let bill of this.Bills) {
                 let oneBill = {
-                    payer:bill.payer,
-                    amount:Dinero({ amount: bill.amount.getAmount() }),
+                    payer: bill.payer,
+                    amount: Dinero({ amount: bill.amount.getAmount() }),
                     id: bill.id,
                     participants: JSON.parse(JSON.stringify(bill.participants)),
                     date: bill.date && moment(bill.date.format()),
-                }
+                };
                 billsCopy.push(oneBill);
             }
             return billsCopy;
-        }
+        },
     },
     methods: {
-        sortedBills(oriBills){
-            //console.log(this.Bills); 
-            return oriBills.sort((a,b) => {
+        sortedBills(oriBills) {
+            //console.log(this.Bills);
+            return oriBills.sort((a, b) => {
                 let modifier = 1;
-                if(this.currentSortDir === 'desc') modifier = -1;
-                
-                if(this.currentSort === 'date'){
+                if (this.currentSortDir === 'desc') modifier = -1;
+
+                if (this.currentSort === 'date') {
                     //move all bills without date to the end of the list
-                    if(a['date'] === undefined && b['date'] != undefined) return 1;
-                    if(a['date'] != undefined && b['date'] === undefined) return -1;
-                    if(a['date'] === undefined && b['date'] === undefined) return 0;
-                    if(a['date'].isBefore(b['date'])) return -1 * modifier;
-                    if(a['date'].isAfter(b['date'])) return 1 * modifier;
+                    if (a['date'] === undefined && b['date'] != undefined)
+                        return 1;
+                    if (a['date'] != undefined && b['date'] === undefined)
+                        return -1;
+                    if (a['date'] === undefined && b['date'] === undefined)
+                        return 0;
+                    if (a['date'].isBefore(b['date'])) return -1 * modifier;
+                    if (a['date'].isAfter(b['date'])) return 1 * modifier;
                     return 0;
                 }
-                if(this.currentSort === 'amount'){
-                    if(a[this.currentSort].getAmount() < b[this.currentSort].getAmount()) return -1 * modifier;
-                    if(a[this.currentSort].getAmount() > b[this.currentSort].getAmount()) return 1 * modifier;
+                if (this.currentSort === 'amount') {
+                    if (
+                        a[this.currentSort].getAmount() <
+                        b[this.currentSort].getAmount()
+                    )
+                        return -1 * modifier;
+                    if (
+                        a[this.currentSort].getAmount() >
+                        b[this.currentSort].getAmount()
+                    )
+                        return 1 * modifier;
                     return 0;
                 }
-                if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
-                if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                if (a[this.currentSort] < b[this.currentSort])
+                    return -1 * modifier;
+                if (a[this.currentSort] > b[this.currentSort])
+                    return 1 * modifier;
                 return 0;
-                });
+            });
         },
         sort(s) {
             //if s == current sort, reverse
-            if(s === this.currentSort) {
-            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+            if (s === this.currentSort) {
+                this.currentSortDir =
+                    this.currentSortDir === 'asc' ? 'desc' : 'asc';
             }
             this.currentSort = s;
         },
-        billDateInput(e){
+        billDateInput(e) {
             this.billDate = e.target.value && moment(e.target.value);
         },
         getUserNameById(id) {
             return this.Users.filter((each) => each.id === id)[0].name;
         },
-        clearBillInputErrors(){
+        clearBillInputErrors() {
             this.errors = [];
             this.payerValid = true;
             this.amountValid = true;
@@ -203,41 +287,75 @@ export default {
             this.clearBillInputErrors();
             this.includeDate = false;
         },
-        multiSelect(e) {
+        multiSelectEvent(e) {
             e.target.parentElement.focus();
             e.target.selected = !e.target.selected;
             if (e.target.selected) {
                 this.participants.push(e.target.value);
+                let tmpAmount = Dinero({ amount: +this.amount * 100 });
+                tmpAmount = tmpAmount.divide(this.participants.length);
+                for (const each in this.unevenlyRecord) {
+                    this.$set(this.unevenlyRecord, each, tmpAmount.getAmount());
+                }
+                this.$set(
+                    this.unevenlyRecord,
+                    e.target.value,
+                    tmpAmount.getAmount()
+                );
             } else {
                 this.participants = this.participants.filter(
                     (each) => each !== e.target.value
                 );
+                this.$delete(this.unevenlyRecord, e.target.value);
+                if (this.participants.length !== 0) {
+                    let tmpAmount = Dinero({ amount: +this.amount * 100 });
+                    tmpAmount = tmpAmount.divide(this.participants.length);
+                    for (const each in this.unevenlyRecord) {
+                        this.$set(
+                            this.unevenlyRecord,
+                            each,
+                            tmpAmount.getAmount()
+                        );
+                    }
+                }
             }
+
             return false;
         },
-        checkBillInput(){
-            //console.log(this.participants.length)
-            if(this.payerId === ''){
-                this.errors.push("Payer required.");
+        test(e) {
+            console.log(e.target.value);
+            console.log(this.unevenlyRecord);
+        },
+        checkBillInput() {
+            if (this.payerId === '') {
+                this.errors.push('Payer required.');
                 this.payerValid = false;
             }
-            if(this.amount === ''){
-                this.errors.push("Amount required.");
+            if (this.amount === '') {
+                this.errors.push('Amount required.');
                 this.amountValid = false;
             }
-            if(this.participants.length === 0){
-                this.errors.push("Participants required.");
+            if (this.participants.length === 0) {
+                this.errors.push('Participants required.');
                 this.participantsValid = false;
             }
-            if(this.participants.length === 1 && this.participants[0] === this.payerId){
-                this.errors.push("Payer can't be the only participant.")
+            if (
+                this.participants.length === 1 &&
+                this.participants[0] === this.payerId
+            ) {
+                this.errors.push("Payer can't be the only participant.");
                 this.participantsValid = false;
             }
-            if(this.includeDate === true && this.billDate === ''){
-                this.errors.push("Date can't be empty when it's included.")
+            if (this.includeDate === true && this.billDate === '') {
+                this.errors.push("Date can't be empty when it's included.");
                 this.dateValid = false;
             }
-            if(!this.payerValid || !this.amountValid || !this.participantsValid || !this.dateValid){
+            if (
+                !this.payerValid ||
+                !this.amountValid ||
+                !this.participantsValid ||
+                !this.dateValid
+            ) {
                 return false;
             }
             this.clearBillInputErrors();
@@ -249,15 +367,15 @@ export default {
                 this.includeDate = false;
                 return;
             }
-            if(!this.includeDate){
-                this.billDate = ''
+            if (!this.includeDate) {
+                this.billDate = '';
             }
             let newBill = {
                 id: uuid.v4(),
                 payer: this.payerId,
                 amount: Dinero({ amount: +this.amount * 100 }),
                 participants: this.participants,
-                date: this.billDate
+                date: this.billDate,
             };
             this.$emit('add-bill', newBill);
             this.addingNewBill();
@@ -295,9 +413,9 @@ export default {
     opacity: 0.7;
 }
 .label-err {
-    color:red;
+    color: red;
 }
-.border-err{
+.border-err {
     border: 1.5px solid red;
 }
 table,
