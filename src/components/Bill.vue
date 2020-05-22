@@ -36,7 +36,7 @@
                 id="amount-num-box"
                 placeholder="Please add amount"
                 v-model="amount"
-                @input="limitAmountInput"
+                @input="limitAmountInput(amount)"
                 :class="{ 'border-err': !amountValid }"
             />
 
@@ -86,7 +86,7 @@
                 </div>
             </div>
 
-            <div>
+            <div id="unevenly-split">
                 <input
                     type="checkbox"
                     id="Unevenly-checkbox"
@@ -104,24 +104,23 @@
                     <label for="idx"
                         >{{ getUserNameById(each) }} should spend:</label
                     >
-                    <span v-text="unevenlyRecord[each] / 100"></span>
+                    <span v-text="displayUnevenlyRecord[each] / 100"></span>
                     <br />
                     <input
                         type="number"
                         min="0"
                         step=".01"
                         :max="amount"
-                        :value="unevenlyRecord[each] / 100"
-                        @input="
-                            unevenlyRecord[each] = $event.target.value * 100
-                        "
+                        :value="displayUnevenlyRecord[each] / 100"
+                        @input="limitUnevenlySplitInput(each, $event)"
                     />
                     <input
                         type="range"
                         id="idx"
                         min="0"
                         :max="amount * 100"
-                        v-model="unevenlyRecord[each]"
+                        step="100"
+                        v-model="displayUnevenlyRecord[each]"
                         @change="test"
                     />
                 </div>
@@ -190,15 +189,15 @@ export default {
     data() {
         return {
             payerId: '',
-            amount: '',
+            amount: '100',
             participants: [],
-            adding: false,
+            adding: true,
             errors: [],
             payerValid: true,
             amountValid: true,
             participantsValid: true,
             includeDate: false,
-            unevenlySplit: false,
+            unevenlySplit: true,
             unevenlyRecord: {},
             billDate: moment(),
             dateValid: true,
@@ -222,17 +221,71 @@ export default {
             }
             return billsCopy;
         },
+        displayUnevenlyRecord() {
+            let tmpAmount = Dinero({ amount: +this.amount * 100 });
+            tmpAmount = tmpAmount.divide(this.participants.length);
+
+            // Eliminate errors caused by amounts that cannot be divisible
+            let diff =
+                tmpAmount.getAmount() * this.participants.length -
+                +this.amount * 100;
+            let addDiff = false;
+            if (diff < 0) {
+                addDiff = true;
+                diff = 0 - diff;
+            }
+
+            for (const each of this.participants) {
+                if (diff > 0) {
+                    if (addDiff)
+                        this.$set(
+                            this.unevenlyRecord,
+                            each,
+                            tmpAmount.getAmount() + 1
+                        );
+                    else
+                        this.$set(
+                            this.unevenlyRecord,
+                            each,
+                            tmpAmount.getAmount() - 1
+                        );
+                } else
+                    this.$set(this.unevenlyRecord, each, tmpAmount.getAmount());
+                diff--;
+            }
+            return this.unevenlyRecord;
+        },
     },
     methods: {
         limitAmountInput() {
             let stringValue = this.amount.toString();
             let regex = /^(\d{1,15}|\d{0,15}\.\d{1,2}|.)$/;
-            if (!stringValue.match(regex) && this.price !== '') {
+            if (!stringValue.match(regex)) {
                 this.amount = stringValue.slice(0, stringValue.length - 1);
             }
         },
+        limitUnevenlySplitInput(userId, event) {
+            let stringValue = event.target.value.toString();
+            let regex = /^(\d{1,15}|\d{0,15}\.\d{1,2}|.)$/;
+            if (!stringValue.match(regex)) {
+                this.$set(
+                    this.displayUnevenlyRecord,
+                    userId,
+                    stringValue.slice(0, stringValue.length - 1) * 100
+                );
+                event.target.value = stringValue.slice(
+                    0,
+                    stringValue.length - 1
+                );
+            } else {
+                this.$set(
+                    this.displayUnevenlyRecord,
+                    userId,
+                    stringValue * 100
+                );
+            }
+        },
         sortedBills(oriBills) {
-            //console.log(this.Bills);
             return oriBills.sort((a, b) => {
                 let modifier = 1;
                 if (this.currentSortDir === 'desc') modifier = -1;
@@ -298,32 +351,10 @@ export default {
             e.target.selected = !e.target.selected;
             if (e.target.selected) {
                 this.participants.push(e.target.value);
-                let tmpAmount = Dinero({ amount: +this.amount * 100 });
-                tmpAmount = tmpAmount.divide(this.participants.length);
-                for (const each in this.unevenlyRecord) {
-                    this.$set(this.unevenlyRecord, each, tmpAmount.getAmount());
-                }
-                this.$set(
-                    this.unevenlyRecord,
-                    e.target.value,
-                    tmpAmount.getAmount()
-                );
             } else {
                 this.participants = this.participants.filter(
                     (each) => each !== e.target.value
                 );
-                this.$delete(this.unevenlyRecord, e.target.value);
-                if (this.participants.length !== 0) {
-                    let tmpAmount = Dinero({ amount: +this.amount * 100 });
-                    tmpAmount = tmpAmount.divide(this.participants.length);
-                    for (const each in this.unevenlyRecord) {
-                        this.$set(
-                            this.unevenlyRecord,
-                            each,
-                            tmpAmount.getAmount()
-                        );
-                    }
-                }
             }
 
             return false;

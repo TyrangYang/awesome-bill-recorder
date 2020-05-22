@@ -40,6 +40,7 @@ export default {
                 { id: 'userId3', name: 'testName3' },
                 { id: 'userId4', name: 'testName4' },
                 { id: 'userId5', name: 'testName5' },
+                { id: 'userId6', name: 'testName6' },
             ],
             Bills: [
                 {
@@ -92,7 +93,22 @@ export default {
             ],
 
             // Users: [],
-            // Bills: [],
+            // Bills: [
+            //     {
+            //         id: 'bill1',
+            //         payer: 'userId4',
+            //         amount: Dinero({ amount: 10000 }),
+            //         participants: [
+            //             'userId1',
+            //             'userId2',
+            //             'userId3',
+            //             'userId4',
+            //             'userId5',
+            //             'userId6',
+            //         ],
+            //         date: moment('2020-04-20'),
+            //     },
+            // ],
         };
     },
     methods: {
