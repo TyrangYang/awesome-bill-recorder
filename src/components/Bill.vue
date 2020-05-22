@@ -227,7 +227,7 @@ export default {
         limitAmountInput() {
             let stringValue = this.amount.toString();
             let regex = /^(\d{1,15}|\d{0,15}\.\d{1,2}|.)$/;
-            if (!stringValue.match(regex) && this.price !== '') {
+            if (!stringValue.match(regex)) {
                 this.amount = stringValue.slice(0, stringValue.length - 1);
             }
         },
