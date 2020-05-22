@@ -8,7 +8,7 @@
             </ul>
         </div>
 
-        <div class="add-newbill" v-show="adding">
+        <form @submit.prevent="createBill" class="add-newbill" v-show="adding">
             <label for="payer-select" :class="{ 'label-err': !payerValid }"
                 >Who paid:</label
             >
@@ -36,6 +36,7 @@
                 id="amount-num-box"
                 placeholder="Please add amount"
                 v-model="amount"
+                @input="limitAmountInput"
                 :class="{ 'border-err': !amountValid }"
             />
 
@@ -108,6 +109,7 @@
                     <input
                         type="number"
                         min="0"
+                        step=".01"
                         :max="amount"
                         :value="unevenlyRecord[each] / 100"
                         @input="
@@ -125,9 +127,9 @@
                 </div>
             </div>
 
-            <button @click="createBill" class="newbill-btn">Confirm</button>
+            <input type="submit" class="newbill-btn" value="Confirm" />
             <button @click="addingNewBill" class="newbill-btn">Cancel</button>
-        </div>
+        </form>
         <div class="newbill-btn" @click="addingNewBill" v-show="!adding">
             Add New Bill
         </div>
@@ -222,6 +224,13 @@ export default {
         },
     },
     methods: {
+        limitAmountInput() {
+            let stringValue = this.amount.toString();
+            let regex = /^(\d{1,15}|\d{0,15}\.\d{1,2}|.)$/;
+            if (!stringValue.match(regex) && this.price !== '') {
+                this.amount = stringValue.slice(0, stringValue.length - 1);
+            }
+        },
         sortedBills(oriBills) {
             //console.log(this.Bills);
             return oriBills.sort((a, b) => {
@@ -230,12 +239,9 @@ export default {
 
                 if (this.currentSort === 'date') {
                     //move all bills without date to the end of the list
-                    if (a['date'] === undefined && b['date'] != undefined)
-                        return 1;
-                    if (a['date'] != undefined && b['date'] === undefined)
-                        return -1;
-                    if (a['date'] === undefined && b['date'] === undefined)
-                        return 0;
+                    if (!a['date'] && b['date']) return 1;
+                    if (a['date'] && !b['date']) return -1;
+                    if (!a['date'] && !b['date']) return 0;
                     if (a['date'].isBefore(b['date'])) return -1 * modifier;
                     if (a['date'].isAfter(b['date'])) return 1 * modifier;
                     return 0;
