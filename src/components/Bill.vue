@@ -119,9 +119,9 @@
                         id="idx"
                         min="0"
                         :max="amount * 100"
-                        step="100"
+                        step="500"
                         v-model="displayUnevenlyRecord[each]"
-                        @change="test"
+                        @input="unevenlySplitSlider(each)"
                     />
                 </div>
             </div>
@@ -265,6 +265,10 @@ export default {
             }
         },
         limitUnevenlySplitInput(userId, event) {
+            if (+event.target.value > event.target.max)
+                event.target.value = event.target.max;
+            if (+event.target.value < event.target.min)
+                event.target.value = event.target.min;
             let stringValue = event.target.value.toString();
             let regex = /^(\d{1,15}|\d{0,15}\.\d{1,2}|.)$/;
             if (!stringValue.match(regex)) {
@@ -283,6 +287,35 @@ export default {
                     userId,
                     stringValue * 100
                 );
+            }
+            this.balanceOtherUnevenlySplit(userId);
+        },
+        unevenlySplitSlider(userId) {
+            this.balanceOtherUnevenlySplit(userId);
+        },
+        balanceOtherUnevenlySplit(userId) {
+            let total = 0;
+            for (let each of this.participants) {
+                total += +this.displayUnevenlyRecord[each];
+            }
+            let diff = total - this.amount * 100;
+            if (diff > 0) {
+                let notCurrentUser = this.participants.filter(
+                    (val) => val !== userId
+                );
+                let idx = notCurrentUser.length - 1;
+                while (diff != 0) {
+                    if (
+                        diff > this.displayUnevenlyRecord[notCurrentUser[idx]]
+                    ) {
+                        this.displayUnevenlyRecord[notCurrentUser[idx]] = 0;
+                        diff -= this.displayUnevenlyRecord[notCurrentUser[idx]];
+                        idx--;
+                    } else {
+                        this.displayUnevenlyRecord[notCurrentUser[idx]] -= diff;
+                        diff = 0;
+                    }
+                }
             }
         },
         sortedBills(oriBills) {
@@ -359,10 +392,7 @@ export default {
 
             return false;
         },
-        test(e) {
-            console.log(e.target.value);
-            console.log(this.unevenlyRecord);
-        },
+
         checkBillInput() {
             if (this.payerId === '') {
                 this.errors.push('Payer required.');
