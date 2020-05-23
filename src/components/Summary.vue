@@ -48,6 +48,10 @@ export default {
             let m = new Map();
             for (let bill of this.Bills) {
                 let avg = bill.amount.divide(bill.participants.length);
+                let diff = Math.abs(
+                    avg.getAmount() * bill.participants.length -
+                        bill.amount.getAmount()
+                );
                 for (let one of bill.participants) {
                     if (one != bill.payer) {
                         let from = one,
@@ -66,6 +70,19 @@ export default {
                         }
                     }
                 }
+                // console.log(diff);
+                m.forEach((val, key, m) => {
+                    if (diff > 0) {
+                        if (val.getAmount > 0)
+                            m.set(key, val.add(Dinero({ amount: 1 })));
+                        else m.set(key, val.subtract(Dinero({ amount: 1 })));
+                    }
+                    diff--;
+                });
+                // m.forEach((val, key) => {
+                //     console.log(key, val.getAmount());
+                // });
+                // console.log(diff);
             }
             // analysis map
             let res = [];

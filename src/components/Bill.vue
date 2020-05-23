@@ -37,7 +37,7 @@
                 placeholder="Please add amount"
                 step=".01"
                 v-model="amount"
-                @input="limitAmountInput"
+                @input="limitAmountInput(amount)"
                 :class="{ 'border-err': !amountValid }"
             />
 
@@ -87,13 +87,19 @@
                 </div>
             </div>
 
-            <div>
+            <div id="unevenly-split">
                 <input
                     type="checkbox"
                     id="Unevenly-checkbox"
                     v-model="unevenlySplit"
                 />
-                <label for="Unevenly-checkbox">Split unevenly</label>
+                <label
+                    for="Unevenly-checkbox"
+                    :class="{
+                        'label-err': !unevenlySplitValid && unevenlySplit,
+                    }"
+                    >Split unevenly</label
+                >
                 <span v-show="unevenlySplit && amount === ''" style="color: red"
                     >(amount should not empty)</span
                 >
@@ -105,25 +111,24 @@
                     <label for="idx"
                         >{{ getUserNameById(each) }} should spend:</label
                     >
-                    <span v-text="unevenlyRecord[each] / 100"></span>
+                    <span v-text="displayUnevenlyRecord[each] / 100"></span>
                     <br />
                     <input
                         type="number"
                         min="0"
                         step=".01"
                         :max="amount"
-                        :value="unevenlyRecord[each] / 100"
-                        @input="
-                            unevenlyRecord[each] = $event.target.value * 100
-                        "
+                        :value="displayUnevenlyRecord[each] / 100"
+                        @input="limitUnevenlySplitInput(each, $event)"
                     />
                     <input
                         type="range"
                         id="idx"
                         min="0"
                         :max="amount * 100"
-                        v-model="unevenlyRecord[each]"
-                        @change="test"
+                        step="500"
+                        v-model="displayUnevenlyRecord[each]"
+                        @input="unevenlySplitSlider(each)"
                     />
                 </div>
             </div>
@@ -193,16 +198,17 @@ export default {
             payerId: '',
             amount: '',
             participants: [],
-            adding: false,
+            adding: true,
             errors: [],
             payerValid: true,
             amountValid: true,
             participantsValid: true,
+            unevenlySplitValid: true,
+            dateValid: true,
             includeDate: false,
+            billDate: moment(),
             unevenlySplit: false,
             unevenlyRecord: {},
-            billDate: moment(),
-            dateValid: true,
             currentSort: 'payer',
             currentSortDir: 'asc',
         };
@@ -223,6 +229,40 @@ export default {
             }
             return billsCopy;
         },
+        displayUnevenlyRecord() {
+            let tmpAmount = Dinero({ amount: +this.amount * 100 });
+            tmpAmount = tmpAmount.divide(this.participants.length);
+
+            // Eliminate errors caused by amounts that cannot be divisible
+            let diff =
+                tmpAmount.getAmount() * this.participants.length -
+                +this.amount * 100;
+            let addDiff = false;
+            if (diff < 0) {
+                addDiff = true;
+                diff = 0 - diff;
+            }
+
+            for (const each of this.participants) {
+                if (diff > 0) {
+                    if (addDiff)
+                        this.$set(
+                            this.unevenlyRecord,
+                            each,
+                            tmpAmount.getAmount() + 1
+                        );
+                    else
+                        this.$set(
+                            this.unevenlyRecord,
+                            each,
+                            tmpAmount.getAmount() - 1
+                        );
+                } else
+                    this.$set(this.unevenlyRecord, each, tmpAmount.getAmount());
+                diff--;
+            }
+            return this.unevenlyRecord;
+        },
     },
     methods: {
         limitAmountInput() {
@@ -232,8 +272,61 @@ export default {
                 this.amount = stringValue.slice(0, stringValue.length - 1);
             }
         },
+        limitUnevenlySplitInput(userId, event) {
+            if (+event.target.value > event.target.max)
+                event.target.value = event.target.max;
+            if (+event.target.value < event.target.min)
+                event.target.value = event.target.min;
+            let stringValue = event.target.value.toString();
+            let regex = /^(\d{1,15}|\d{0,15}\.\d{1,2}|.)$/;
+            if (!stringValue.match(regex)) {
+                this.$set(
+                    this.displayUnevenlyRecord,
+                    userId,
+                    stringValue.slice(0, stringValue.length - 1) * 100
+                );
+                event.target.value = stringValue.slice(
+                    0,
+                    stringValue.length - 1
+                );
+            } else {
+                this.$set(
+                    this.displayUnevenlyRecord,
+                    userId,
+                    stringValue * 100
+                );
+            }
+            this.balanceOtherUnevenlySplit(userId);
+        },
+        unevenlySplitSlider(userId) {
+            this.balanceOtherUnevenlySplit(userId);
+        },
+        balanceOtherUnevenlySplit(userId) {
+            let total = 0;
+            for (let each of this.participants) {
+                total += +this.displayUnevenlyRecord[each];
+            }
+            let diff = total - this.amount * 100;
+            if (diff > 0) {
+                let notCurrentUser = this.participants.filter(
+                    (val) => val !== userId
+                );
+                let idx = notCurrentUser.length - 1;
+                while (diff != 0) {
+                    if (
+                        diff > this.displayUnevenlyRecord[notCurrentUser[idx]]
+                    ) {
+                        this.displayUnevenlyRecord[notCurrentUser[idx]] = 0;
+                        diff -= this.displayUnevenlyRecord[notCurrentUser[idx]];
+                        idx--;
+                    } else {
+                        this.displayUnevenlyRecord[notCurrentUser[idx]] -= diff;
+                        diff = 0;
+                    }
+                }
+            }
+        },
         sortedBills(oriBills) {
-            //console.log(this.Bills);
             return oriBills.sort((a, b) => {
                 let modifier = 1;
                 if (this.currentSortDir === 'desc') modifier = -1;
@@ -288,6 +381,7 @@ export default {
             this.participantsValid = true;
             //this.billDate = moment();
             this.dateValid = true;
+            this.unevenlySplitValid = true;
         },
         addingNewBill() {
             this.adding = !this.adding;
@@ -299,40 +393,15 @@ export default {
             e.target.selected = !e.target.selected;
             if (e.target.selected) {
                 this.participants.push(e.target.value);
-                let tmpAmount = Dinero({ amount: +this.amount * 100 });
-                tmpAmount = tmpAmount.divide(this.participants.length);
-                for (const each in this.unevenlyRecord) {
-                    this.$set(this.unevenlyRecord, each, tmpAmount.getAmount());
-                }
-                this.$set(
-                    this.unevenlyRecord,
-                    e.target.value,
-                    tmpAmount.getAmount()
-                );
             } else {
                 this.participants = this.participants.filter(
                     (each) => each !== e.target.value
                 );
-                this.$delete(this.unevenlyRecord, e.target.value);
-                if (this.participants.length !== 0) {
-                    let tmpAmount = Dinero({ amount: +this.amount * 100 });
-                    tmpAmount = tmpAmount.divide(this.participants.length);
-                    for (const each in this.unevenlyRecord) {
-                        this.$set(
-                            this.unevenlyRecord,
-                            each,
-                            tmpAmount.getAmount()
-                        );
-                    }
-                }
             }
 
             return false;
         },
-        test(e) {
-            console.log(e.target.value);
-            console.log(this.unevenlyRecord);
-        },
+
         checkBillInput() {
             if (this.payerId === '') {
                 this.errors.push('Payer required.');
@@ -358,17 +427,33 @@ export default {
                 this.dateValid = false;
             }
 
+            if (this.unevenlySplit === true) {
+                let total = 0;
+                for (let each of this.participants) {
+                    total += +this.displayUnevenlyRecord[each];
+                }
+                if (total != this.amount * 100) {
+                    // error
+                    this.errors.push(
+                        'Unevenly Split amount is not equal to amount your pervided.'
+                    );
+                    this.unevenlySplitValid = false;
+                }
+            }
+
             if ((+this.amount / this.participants.length).toFixed(4) < 0.01) {
                 this.errors.push(
                     'The mininum average split for each participant is 0.01.'
                 );
                 this.amountValid = false;
+
             }
             if (
                 !this.payerValid ||
                 !this.amountValid ||
                 !this.participantsValid ||
-                !this.dateValid
+                !this.dateValid ||
+                !this.unevenlySplitValid
             ) {
                 return false;
             }
