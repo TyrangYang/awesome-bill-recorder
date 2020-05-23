@@ -92,7 +92,13 @@
                     id="Unevenly-checkbox"
                     v-model="unevenlySplit"
                 />
-                <label for="Unevenly-checkbox">Split unevenly</label>
+                <label
+                    for="Unevenly-checkbox"
+                    :class="{
+                        'label-err': !unevenlySplitValid && unevenlySplit,
+                    }"
+                    >Split unevenly</label
+                >
                 <span v-show="unevenlySplit && amount === ''" style="color: red"
                     >(amount should not empty)</span
                 >
@@ -189,18 +195,19 @@ export default {
     data() {
         return {
             payerId: '',
-            amount: '100',
+            amount: '',
             participants: [],
             adding: true,
             errors: [],
             payerValid: true,
             amountValid: true,
             participantsValid: true,
-            includeDate: false,
-            unevenlySplit: true,
-            unevenlyRecord: {},
-            billDate: moment(),
+            unevenlySplitValid: true,
             dateValid: true,
+            includeDate: false,
+            billDate: moment(),
+            unevenlySplit: false,
+            unevenlyRecord: {},
             currentSort: 'payer',
             currentSortDir: 'asc',
         };
@@ -373,6 +380,7 @@ export default {
             this.participantsValid = true;
             //this.billDate = moment();
             this.dateValid = true;
+            this.unevenlySplitValid = true;
         },
         addingNewBill() {
             this.adding = !this.adding;
@@ -417,11 +425,25 @@ export default {
                 this.errors.push("Date can't be empty when it's included.");
                 this.dateValid = false;
             }
+            if (this.unevenlySplit === true) {
+                let total = 0;
+                for (let each of this.participants) {
+                    total += +this.displayUnevenlyRecord[each];
+                }
+                if (total != this.amount * 100) {
+                    // error
+                    this.errors.push(
+                        'Unevenly Split amount is not equal to amount your pervided.'
+                    );
+                    this.unevenlySplitValid = false;
+                }
+            }
             if (
                 !this.payerValid ||
                 !this.amountValid ||
                 !this.participantsValid ||
-                !this.dateValid
+                !this.dateValid ||
+                !this.unevenlySplitValid
             ) {
                 return false;
             }
