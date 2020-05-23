@@ -35,6 +35,7 @@
                 type="number"
                 id="amount-num-box"
                 placeholder="Please add amount"
+                step=".01"
                 v-model="amount"
                 @input="limitAmountInput"
                 :class="{ 'border-err': !amountValid }"
@@ -355,6 +356,13 @@ export default {
             if (this.includeDate === true && this.billDate === '') {
                 this.errors.push("Date can't be empty when it's included.");
                 this.dateValid = false;
+            }
+
+            if ((+this.amount / this.participants.length).toFixed(4) < 0.01) {
+                this.errors.push(
+                    'The mininum average split for each participant is 0.01.'
+                );
+                this.amountValid = false;
             }
             if (
                 !this.payerValid ||
