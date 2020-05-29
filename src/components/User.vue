@@ -28,7 +28,7 @@
             <p>{{ user.name }}</p>
             <font-awesome-icon
                 icon="trash-alt"
-                @click="$emit('del-user', user.id)"
+                @click="$store.commit('deleteUser', user.id)"
             />
         </div>
         
@@ -36,6 +36,7 @@
 </template>
 
 <script>
+// import { mapMutations } from 'vuex';
 import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
@@ -43,8 +44,11 @@ library.add(faTrashAlt);
 
 export default {
     name: 'User',
-    props: ['Users'],
-
+    computed: {
+        Users(){
+            return this.$store.getters.Users;
+        }
+    },
     data() {
         return {
             newUserName: '',
@@ -54,6 +58,7 @@ export default {
         };
     },
     methods: {
+        // ...mapMutations(['deleteUser','addUser']),
         addingUser() {
             this.adding = !this.adding;
             this.clearNameInputErrors();
@@ -91,7 +96,7 @@ export default {
                 name: this.newUserName.toUpperCase(),
             };
 
-            this.$emit('add-user', newUser);
+            this.$store.commit('addUser', newUser);
             // cleanup
             this.newUserName = '';
             this.addingUser();

@@ -27,6 +27,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faArchive } from '@fortawesome/free-solid-svg-icons';
@@ -35,7 +36,7 @@ library.add(faArchive);
 import Dinero from 'dinero.js';
 export default {
     name: 'Summary',
-    props: ['Users', 'Bills'],
+    // props: ['Users', 'Bills'],
     data() {
         return {
             sortState: 0,
@@ -43,6 +44,7 @@ export default {
         };
     },
     computed: {
+        ...mapGetters(['Bills', 'Users']),
         summary: function() {
             // compress props data into a map
             let m = new Map();
@@ -129,7 +131,7 @@ export default {
                     participants: [willBecomeNewBill.to],
                     date: moment(),
                 };
-                this.$emit('add-bill', newBill);
+                this.$store.commit('addBill', newBill);
             }
         },
         sortSummary: function(oriSummary) {

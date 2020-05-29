@@ -173,7 +173,7 @@
                         <td>
                             <font-awesome-icon
                                 icon="trash-alt"
-                                @click="$emit('del-bill', bill.id)"
+                                @click="$store.commit('deleteBill', bill.id)"
                             />
                         </td>
                     </tr>
@@ -184,6 +184,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons';
@@ -192,7 +193,7 @@ import moment from 'moment';
 library.add(faTrashAlt, faEdit);
 export default {
     name: 'Bill',
-    props: ['Bills', 'Users'],
+    // props: ['Bills', 'Users'],
     data() {
         return {
             payerId: '',
@@ -215,6 +216,13 @@ export default {
     },
 
     computed: {
+        ...mapGetters(['Bills', 'Users']),
+        // Users() {
+        //     return this.$store.getters.Users;
+        // },
+        // Bills() {
+        //     return this.$store.getters.Bills;
+        // },
         deepCopyBills() {
             let billsCopy = [];
             for (let bill of this.Bills) {
@@ -446,7 +454,6 @@ export default {
                     'The mininum average split for each participant is 0.01.'
                 );
                 this.amountValid = false;
-
             }
             if (
                 !this.payerValid ||
@@ -481,7 +488,7 @@ export default {
                         participants: [each],
                         date: this.billDate,
                     };
-                    this.$emit('add-bill', newBill);
+                    this.$store.commit('addBill', newBill);
                 }
             } else {
                 let newBill = {
@@ -491,7 +498,7 @@ export default {
                     participants: this.participants,
                     date: this.billDate,
                 };
-                this.$emit('add-bill', newBill);
+                this.$store.commit('addBill', newBill);
             }
 
             this.addingNewBill();
