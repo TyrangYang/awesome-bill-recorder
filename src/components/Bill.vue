@@ -134,7 +134,9 @@
             </div>
 
             <input type="submit" class="newbill-btn" value="Confirm" />
-            <button @click="addingNewBill" class="newbill-btn">Cancel</button>
+            <button @click.prevent="addingNewBill" class="newbill-btn">
+                Cancel
+            </button>
         </form>
         <div class="newbill-btn" @click="addingNewBill" v-show="!adding">
             Add New Bill
@@ -199,7 +201,7 @@ export default {
             payerId: '',
             amount: '',
             participants: [],
-            adding: true,
+            adding: false,
             errors: [],
             payerValid: true,
             amountValid: true,
@@ -507,6 +509,7 @@ export default {
             this.amount = '';
             this.participants = [];
             this.unevenlyRecord = {};
+            this.unevenlySplit = false;
             this.billDate = moment();
             this.includeDate = false;
         },
