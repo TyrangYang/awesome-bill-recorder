@@ -7,6 +7,7 @@ This is a bill recording web application developed using [Vue.js](https://vuejs.
 ## Design
 
 Currently it is a single-page application, and there are 3 components each taking care of a block of functionalities. Adding/Deleting users and displaying their names are handled by the User component. Adding a new bill and displaying/sorting bills is happening in the Bill component. Summary component is responsible for summing up who owes who how much money.
+Vuex is introduced to manage states for all the components in one place.
 Since it's purely frontend for now, our main data is currently saved only in parent component and all child components are passing data to the parent.
 
 ## Dependencies used
