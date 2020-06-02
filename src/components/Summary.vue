@@ -44,8 +44,9 @@ export default {
         };
     },
     computed: {
-        ...mapGetters(['Bills', 'Users']),
+        ...mapGetters(['Bills', 'Users', 'getUserNameById']),
         summary: function() {
+            console.log('summary init');
             // compress props data into a map
             let m = new Map();
             for (let bill of this.Bills) {
@@ -111,9 +112,6 @@ export default {
         },
     },
     methods: {
-        getUserNameById(id) {
-            return this.Users.filter((each) => each.id === id)[0].name;
-        },
         settleSummary(willBecomeNewBill) {
             let confirmed = false;
             if (this.mergeState != 0) {

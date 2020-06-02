@@ -142,46 +142,7 @@
             Add New Bill
         </div>
         <!-- display -->
-        <div class="table-wrap">
-            <table id="billTable">
-                <thead>
-                    <tr>
-                        <th @click="sort('payer')">Who paid?</th>
-                        <th @click="sort('amount')">Amount</th>
-                        <th>Participants</th>
-                        <th @click="sort('date')">Date</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="bill in sortedBills(deepCopyBills)"
-                        :key="bill.id"
-                    >
-                        <td>{{ getUserNameById(bill.payer) }}</td>
-                        <td>{{ bill.amount.toFormat() }}</td>
-                        <td>
-                            <div
-                                v-for="(person, idx) in bill.participants"
-                                :key="idx"
-                            >
-                                {{ getUserNameById(person) }}
-                            </div>
-                        </td>
-                        <td>
-                            {{ bill.date && bill.date.format().substr(0, 10) }}
-                        </td>
-                        <!-- <font-awesome-icon icon="edit" /> -->
-                        <td>
-                            <font-awesome-icon
-                                icon="trash-alt"
-                                @click="$store.commit('deleteBill', bill.id)"
-                            />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <BillDisplay />
     </div>
 </template>
 
@@ -190,12 +151,16 @@ import { mapGetters } from 'vuex';
 import { uuid } from 'vue-uuid';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons';
+import BillDisplay from './BillDisplay';
 import Dinero from 'dinero.js';
 import moment from 'moment';
 library.add(faTrashAlt, faEdit);
 export default {
     name: 'Bill',
     // props: ['Bills', 'Users'],
+    components: {
+        BillDisplay,
+    },
     data() {
         return {
             payerId: '',
@@ -212,33 +177,18 @@ export default {
             billDate: moment(),
             unevenlySplit: false,
             unevenlyRecord: {},
-            currentSort: 'payer',
-            currentSortDir: 'asc',
         };
     },
 
     computed: {
-        ...mapGetters(['Bills', 'Users']),
+        ...mapGetters(['Bills', 'Users', 'getUserNameById']),
         // Users() {
         //     return this.$store.getters.Users;
         // },
         // Bills() {
         //     return this.$store.getters.Bills;
         // },
-        deepCopyBills() {
-            let billsCopy = [];
-            for (let bill of this.Bills) {
-                let oneBill = {
-                    payer: bill.payer,
-                    amount: Dinero({ amount: bill.amount.getAmount() }),
-                    id: bill.id,
-                    participants: JSON.parse(JSON.stringify(bill.participants)),
-                    date: bill.date && moment(bill.date.format()),
-                };
-                billsCopy.push(oneBill);
-            }
-            return billsCopy;
-        },
+
         displayUnevenlyRecord() {
             let tmpAmount = Dinero({ amount: +this.amount * 100 });
             tmpAmount = tmpAmount.divide(this.participants.length);
@@ -336,54 +286,10 @@ export default {
                 }
             }
         },
-        sortedBills(oriBills) {
-            return oriBills.sort((a, b) => {
-                let modifier = 1;
-                if (this.currentSortDir === 'desc') modifier = -1;
-
-                if (this.currentSort === 'date') {
-                    //move all bills without date to the end of the list
-                    if (!a['date'] && b['date']) return 1;
-                    if (a['date'] && !b['date']) return -1;
-                    if (!a['date'] && !b['date']) return 0;
-                    if (a['date'].isBefore(b['date'])) return -1 * modifier;
-                    if (a['date'].isAfter(b['date'])) return 1 * modifier;
-                    return 0;
-                }
-                if (this.currentSort === 'amount') {
-                    if (
-                        a[this.currentSort].getAmount() <
-                        b[this.currentSort].getAmount()
-                    )
-                        return -1 * modifier;
-                    if (
-                        a[this.currentSort].getAmount() >
-                        b[this.currentSort].getAmount()
-                    )
-                        return 1 * modifier;
-                    return 0;
-                }
-                if (a[this.currentSort] < b[this.currentSort])
-                    return -1 * modifier;
-                if (a[this.currentSort] > b[this.currentSort])
-                    return 1 * modifier;
-                return 0;
-            });
-        },
-        sort(s) {
-            //if s == current sort, reverse
-            if (s === this.currentSort) {
-                this.currentSortDir =
-                    this.currentSortDir === 'asc' ? 'desc' : 'asc';
-            }
-            this.currentSort = s;
-        },
         billDateInput(e) {
             this.billDate = e.target.value && moment(e.target.value);
         },
-        getUserNameById(id) {
-            return this.Users.filter((each) => each.id === id)[0].name;
-        },
+
         clearBillInputErrors() {
             this.errors = [];
             this.payerValid = true;
@@ -544,19 +450,5 @@ export default {
 }
 .border-err {
     border: 1.5px solid red;
-}
-table,
-td,
-th {
-    border: 1px solid black;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-th {
-    height: 50px;
 }
 </style>

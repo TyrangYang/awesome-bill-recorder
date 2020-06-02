@@ -11,6 +11,9 @@ const state = {
 
 const getters = {
     Users: (state) => state.Users,
+    getUserNameById: (state) => (id) => {
+        return state.Users.filter((each) => each.id === id)[0].name;
+    },
 };
 
 const actions = {
