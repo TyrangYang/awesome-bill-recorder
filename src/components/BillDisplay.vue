@@ -3,10 +3,19 @@
         <table id="billTable">
             <thead>
                 <tr>
-                    <th @click="sort('payer')">Who paid?</th>
-                    <th @click="sort('amount')">Amount</th>
+                    <th @click="sort('payer')">
+                        Who paid?
+                        <font-awesome-icon icon="sort" />
+                    </th>
+                    <th @click="sort('amount')">
+                        Amount
+                        <font-awesome-icon icon="sort" />
+                    </th>
                     <th>Participants</th>
-                    <th @click="sort('date')">Date</th>
+                    <th @click="sort('date')">
+                        Date
+                        <font-awesome-icon icon="sort" />
+                    </th>
                     <th></th>
                 </tr>
             </thead>
@@ -42,6 +51,10 @@
 import { mapGetters } from 'vuex';
 import Dinero from 'dinero.js';
 import moment from 'moment';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faTrashAlt, faEdit, faSort } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faTrashAlt, faEdit, faSort);
 export default {
     name: 'BillDisplay',
     data() {
@@ -118,15 +131,26 @@ export default {
 table,
 td,
 th {
-    border: 1px solid black;
+    border: 1px solid #ddd;
+    text-align: left;
 }
 
 table {
     border-collapse: collapse;
-    width: 100%;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 5px;
 }
 
+th,
+td {
+    padding: 7px;
+}
 th {
-    height: 50px;
+    cursor: pointer;
+}
+tr:hover {
+    background-color: #f5f5f5;
 }
 </style>

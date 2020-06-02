@@ -435,6 +435,7 @@ export default {
     border-radius: 5px;
     text-align: center;
     margin: 1px 20px;
+    overflow-x: auto;
 }
 .newbill-btn {
     display: inline-block;
