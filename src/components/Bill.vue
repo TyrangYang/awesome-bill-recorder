@@ -149,12 +149,9 @@
 <script>
 import { mapGetters } from 'vuex';
 import { uuid } from 'vue-uuid';
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons';
 import BillDisplay from './BillDisplay';
 import Dinero from 'dinero.js';
 import moment from 'moment';
-library.add(faTrashAlt, faEdit);
 export default {
     name: 'Bill',
     // props: ['Bills', 'Users'],
