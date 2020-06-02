@@ -46,7 +46,6 @@ export default {
     computed: {
         ...mapGetters(['Bills', 'Users', 'getUserNameById']),
         summary: function() {
-            console.log('summary init');
             // compress props data into a map
             let m = new Map();
             for (let bill of this.Bills) {
