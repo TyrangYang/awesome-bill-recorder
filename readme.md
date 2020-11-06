@@ -1,5 +1,7 @@
 # awesome-bill-recorder
 
+**Temporarily deprecated because of Vue 3.0 release.**
+
 ## Introduction
 
 This is a bill recording web application developed using [Vue.js](https://vuejs.org/index.html). It can come in handy when you want to record daily spendings with friends and split the bills.
